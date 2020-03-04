@@ -10,3 +10,5 @@ done
 sum=$(($sum/$count))
 echo "кол-во аргументов = $count"
 echo "среднее арифметическое аргументов = $sum"
+
+#./average.sh $(cat numbers.txt)
