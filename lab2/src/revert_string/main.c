@@ -22,3 +22,4 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+//gcc main.c revert_string.c  && ./a.out qwer
