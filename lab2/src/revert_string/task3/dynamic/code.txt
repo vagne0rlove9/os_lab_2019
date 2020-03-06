@@ -1,0 +1,8 @@
+din LD_LIBRARY_PATH=$(pwd)
+./a.out qwere
+
+stat 
+gcc -c static.c -o static.o
+ar rc libMY_STATIC.a static.o
+ranlib libMY_STATIC.a
+gcc program1.c libMY_STATIC.a
