@@ -40,16 +40,22 @@ int main(int argc, char **argv) {
         switch (option_index) {
           case 0:
             seed = atoi(optarg);
+            if(seed<=0)
+                exit(0);
             // your code here
             // error handling
             break;
           case 1:
             array_size = atoi(optarg);
+            if(array_size<=0)
+                exit(0);
             // your code here
             // error handling
             break;
           case 2:
             pnum = atoi(optarg);
+            if(pnum<=0)
+                exit(0);
             // your code here
             // error handling
             break;
@@ -90,34 +96,52 @@ int main(int argc, char **argv) {
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
-
-  for (int i = 0; i < pnum; i++) {
+  int i;
+  for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
       // successful fork
+      printf("fork1 %d %d\n", i, child_pid);
       active_child_processes += 1;
       if (child_pid == 0) {
+        
         // child process
-
+        printf("fork2 %d %d\n", i, child_pid);
+        struct MinMax min_max1 = GetMinMax(array, 0, array_size);
+        //printf("min: %d\n", min_max1.min);
+        //printf("max: %d\n", min_max1.max);
+        
         // parallel somehow
-
+        //max
         if (with_files) {
-          // use files here
+            FILE *fp;
+            fp=fopen("min_max.txt", "w");
+            char buf[256];
+            sprintf(buf, "%d", min_max1.min);
+            fprintf(fp, buf);
+            fprintf(fp, (const char*)"\n");
+            sprintf(buf, "%d", min_max1.max);
+            fprintf(fp, buf);
+            fprintf(fp, (const char*)"\n");
+            fclose(fp);
         } else {
           // use pipe here
         }
         return 0;
       }
-
+    else {
+        //min
+    }
     } else {
+      printf("fork3 %d\n", i);
       printf("Fork failed!\n");
       return 1;
     }
   }
-
+    int status;
   while (active_child_processes > 0) {
     // your code here
-
+    wait(&status);
     active_child_processes -= 1;
   }
 
@@ -125,13 +149,20 @@ int main(int argc, char **argv) {
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
 
-  for (int i = 0; i < pnum; i++) {
+  for (i = 0; i < pnum; i++) {
     int min = INT_MAX;
     int max = INT_MIN;
 
     if (with_files) {
       // read from files
-    } else {
+        FILE *fp;
+        fp=fopen("min_max.txt", "r");
+        char buf[256];
+        fscanf(fp,"%s",buf);
+        min = atoi(buf);
+        fscanf(fp,"%s",buf);
+        max = atoi(buf);
+    } else {    
       // read from pipes
     }
 
@@ -153,3 +184,6 @@ int main(int argc, char **argv) {
   fflush(NULL);
   return 0;
 }
+
+
+//gcc parallel_min_max.c find_min_max.c utils.c && ./a.out --seed 2 --array_size 5 --pnum 1 --by_files 
