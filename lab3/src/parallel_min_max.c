@@ -97,6 +97,11 @@ int main(int argc, char **argv) {
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
   int i;
+  int file_pipe[2];
+  if (pipe(file_pipe)<0)
+  {
+      exit(0);
+  }
   for (i = 0; i < pnum; i++) {
     pid_t child_pid = fork();
     if (child_pid >= 0) {
@@ -126,6 +131,11 @@ int main(int argc, char **argv) {
             fclose(fp);
         } else {
           // use pipe here
+            char buffer[256];
+            sprintf(buffer,"%d",min_max1.min);
+            write(file_pipe[1],buffer,strlen(buffer));
+            sprintf(buffer,"%d",min_max1.max);
+            write(file_pipe[1],buffer,strlen(buffer));
         }
         return 0;
       }
@@ -162,8 +172,20 @@ int main(int argc, char **argv) {
         min = atoi(buf);
         fscanf(fp,"%s",buf);
         max = atoi(buf);
+        printf("files\n");
     } else {    
       // read from pipes
+        char buf[256];
+        int num;
+        read(file_pipe[0],buf,9);
+        //printf("%s\n",buf);
+        num=atoi(buf);
+        min=num;
+        read(file_pipe[0],buf,10);
+        //printf("%s\n",buf);
+        num=atoi(buf);
+        max=num;
+        printf("pipe\n");
     }
 
     if (min < min_max.min) min_max.min = min;
