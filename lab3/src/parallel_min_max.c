@@ -139,19 +139,15 @@ int main(int argc, char **argv) {
         }
         return 0;
       }
-    else {
-        //min
-    }
     } else {
       printf("fork3 %d\n", i);
       printf("Fork failed!\n");
       return 1;
     }
   }
-    int status;
   while (active_child_processes > 0) {
     // your code here
-    wait(&status);
+    wait(0);
     active_child_processes -= 1;
   }
 
