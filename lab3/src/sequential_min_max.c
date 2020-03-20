@@ -32,3 +32,6 @@ int main(int argc, char **argv) {
 
   return 0;
 }
+
+
+//gcc find_min_max.c sequential_min_max.c utils.c && ./a.out 1 2

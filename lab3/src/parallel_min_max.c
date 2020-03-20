@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
         if (with_files) {
             FILE *fp;
             fp=fopen("min_max.txt", "w");
+            flock(fp,"LOCK_EX");
             char buf[256];
             sprintf(buf, "%d", min_max1.min);
             fprintf(fp, buf);
@@ -128,6 +129,7 @@ int main(int argc, char **argv) {
             sprintf(buf, "%d", min_max1.max);
             fprintf(fp, buf);
             fprintf(fp, (const char*)"\n");
+            flock(fp,"LOCK_UN");
             fclose(fp);
         } else {
           // use pipe here
@@ -162,6 +164,7 @@ int main(int argc, char **argv) {
     if (with_files) {
       // read from files
         FILE *fp;
+
         fp=fopen("min_max.txt", "r");
         char buf[256];
         fscanf(fp,"%s",buf);
