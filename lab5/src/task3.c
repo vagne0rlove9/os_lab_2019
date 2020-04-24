@@ -62,3 +62,5 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 }
+
+//gcc task3.c -lpthread -o task3.o && ./task3.o
