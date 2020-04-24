@@ -90,3 +90,6 @@ void do_wrap_up(int counter) {
   int total;
   printf("All done, counter = %d\n", counter);
 }
+
+
+//gcc mutex.c -lpthread -o mut.o && ./mut.o
