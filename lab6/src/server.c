@@ -12,32 +12,25 @@
 #include <sys/types.h>
 
 #include "pthread.h"
+#include "factorial.h"
 
-struct FactorialArgs {
-  uint64_t begin;
-  uint64_t end;
-  uint64_t mod;
-};
 
-uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
-  uint64_t result = 0;
-  a = a % mod;
-  while (b > 0) {
-    if (b % 2 == 1)
-      result = (result + a) % mod;
-    a = (a * 2) % mod;
-    b /= 2;
-  }
+//gcc server.c -lpthread -o server.out && ./server.out --port 20001 --tnum 4
 
-  return result % mod;
-}
+//./server.o --port 20001 --tnum 1
+
 
 uint64_t Factorial(const struct FactorialArgs *args) {
-  uint64_t ans = 1;
-
-  // TODO: your code here
-
-  return ans;
+    int fac = 1;
+    // TODO: your code here
+    int i;
+    for ( i = args->begin; i <= args->end; i++)
+    {
+        fac*=i;
+        fac%=args->mod;
+        printf("%d %lu %d %lu\n", fac, args->begin, i, args->end);
+    }    
+    return fac;
 }
 
 void *ThreadFactorial(void *args) {
@@ -46,6 +39,7 @@ void *ThreadFactorial(void *args) {
 }
 
 int main(int argc, char **argv) {
+  uint32_t i;
   int tnum = -1;
   int port = -1;
 
@@ -67,10 +61,14 @@ int main(int argc, char **argv) {
       switch (option_index) {
       case 0:
         port = atoi(optarg);
+        if (!(port>0))
+        return 0;
         // TODO: your code here
         break;
       case 1:
         tnum = atoi(optarg);
+        if (!(tnum>0))
+        return 0;
         // TODO: your code here
         break;
       default:
@@ -97,10 +95,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  struct sockaddr_in server;
-  server.sin_family = AF_INET;
-  server.sin_port = htons((uint16_t)port);
-  server.sin_addr.s_addr = htonl(INADDR_ANY);
+  struct sockaddr_in server = create_sockaddr(port, htonl(INADDR_ANY));
 
   int opt_val = 1;
   setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt_val, sizeof(opt_val));
@@ -146,6 +141,7 @@ int main(int argc, char **argv) {
       }
 
       pthread_t threads[tnum];
+      //pthread_t threads;
 
       uint64_t begin = 0;
       uint64_t end = 0;
@@ -155,13 +151,34 @@ int main(int argc, char **argv) {
       memcpy(&mod, from_client + 2 * sizeof(uint64_t), sizeof(uint64_t));
 
       fprintf(stdout, "Receive: %llu %llu %llu\n", begin, end, mod);
-
+      printf("tnum: %d\n", tnum);
+      if((end - begin + 1) <= 3)
+        tnum = 1;
       struct FactorialArgs args[tnum];
-      for (uint32_t i = 0; i < tnum; i++) {
+      printf("tnum: %d\n", tnum);
+      //struct FactorialArgs args;
+      int block = (double)(end - begin + 1)/tnum;
+      args[0].end = begin + block;
+      args[0].begin = begin;
+      for (i = 1; i < tnum; i++) {
         // TODO: parallel somehow
-        args[i].begin = 1;
-        args[i].end = 1;
-        args[i].mod = mod;
+        if((end - begin + 1)%2 == 0)
+        {    
+            block = (double)(end - begin + 1)/tnum;
+            //args[i].begin = block*(i)+begin;
+            args[i].begin = args[i-1].end + 1;
+            args[i].end = block*(i+1)-1 + begin;
+            args[i].mod = mod;
+        }else 
+        {
+            block = (double)(end - begin + 1)/tnum;
+            args[i].begin = args[i-1].end + 1;
+            args[i].end = block*(i+1) + begin-1;
+            args[i].mod = mod;
+        }
+        // args.begin = begin;
+        // args.end = end;
+        // args.mod = mod;
 
         if (pthread_create(&threads[i], NULL, ThreadFactorial,
                            (void *)&args[i])) {
@@ -171,16 +188,17 @@ int main(int argc, char **argv) {
       }
 
       uint64_t total = 1;
-      for (uint32_t i = 0; i < tnum; i++) {
+      for (i = 0; i < 1; i++) {
         uint64_t result = 0;
         pthread_join(threads[i], (void **)&result);
         total = MultModulo(total, result, mod);
       }
 
       printf("Total: %llu\n", total);
-
-      char buffer[sizeof(total)];
-      memcpy(buffer, &total, sizeof(total));
+        
+      char buffer[256];//sizeof(total)];
+      sprintf(buffer, "%d", total);
+      //memcpy(buffer, &total, sizeof(total));
       err = send(client_fd, buffer, sizeof(total), 0);
       if (err < 0) {
         fprintf(stderr, "Can't send data to client\n");
