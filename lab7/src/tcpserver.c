@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
-
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -97,9 +97,25 @@ int main(int argc, char *argv[]) {
     }
     printf("connection established\n");
 
+    int count = 0;
+
     while ((nread = read(cfd, buf, BUFSIZE)) > 0) {
       write(1, &buf, nread);
+      count++;
+      if(buf[0] == '-')
+      {
+          count-=19;
+          printf("%d\n",count);
+          
+          char num[256];
+          sprintf(num, "%d",count); 
+          write(cfd, "not enough\n", 11);
+          write(cfd, num, strlen(num));
+          //write(cfd, "not enough\n", 11);
+          //write(cfd, "not enough\n", 11);
+      }
     }
+
 
     if (nread == -1) {
       perror("read");

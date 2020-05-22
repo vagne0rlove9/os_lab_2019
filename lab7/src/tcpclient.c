@@ -11,6 +11,8 @@
 #define SADDR struct sockaddr
 #define SIZE sizeof(struct sockaddr_in)
 
+
+
 int main(int argc, char *argv[]) {
   int fd;
   int nread;
@@ -85,7 +87,7 @@ int main(int argc, char *argv[]) {
   servaddr.sin_family = AF_INET;
 
   if (inet_pton(AF_INET, ip, &servaddr.sin_addr) <= 0) {
-    perror("bad address");
+    perror("bad addresss");
     exit(1);
   }
 
@@ -95,14 +97,75 @@ int main(int argc, char *argv[]) {
     perror("connect");
     exit(1);
   }
-
+  write(fd, "hi i'll send u ", 15);
+  write(fd, "10\n", 3);
   write(1, "Input message to send\n", 22);
-  while ((nread = read(0, buf, BUFSIZE)) > 0) {
-    if (write(fd, buf, nread) < 0) {
-      perror("write");
-      exit(1);
+//   while ((nread = read(0, buf, BUFSIZE)) > 0) {
+//     if (write(fd, buf, nread) < 0) {
+//       perror("write");
+//       exit(1);
+//     }
+//   }
+int i;
+char c;
+for(i = 0; i<BUFSIZE; i++){
+    buf[i] = 'q';
+}
+
+
+//while(1){
+    for(i = 0; i < 5; i++)
+    {
+        
+        //buf1[0] = 'q';
+        //nread = read(0,buf,BUFSIZE);
+        nread = BUFSIZE;
+        printf("%d\n", i);
+        printf("%s\n", buf);
+        if (write(fd, buf, nread) < 0) {
+        perror("writesd");
+        exit(1);
+        }
     }
-  }
+    write(fd, "-", 1); 
+    char buf1[256];
+    char buf2[256];
+    // nread = read(fd, buf1, 256);
+    // write(1, &buf1, nread);
+    // nread = read(fd, buf1, 256);
+    // write(1, &buf1, nread);
+    int k = 0;
+    while ((nread = read(fd, buf1, 11)) > 0) {
+      
+      write(1, &buf1, nread);
+      printf("buf1=%s  !\n",buf1);
+      
+      k++;
+      printf("%d\n",k);
+      if(k == 2)
+        break;
+      for(i = 0;i<256; i++)
+        buf1[i] = ' ';
+    }
+    printf("qqbuf1=%s  !\n",buf1);
+    printf("atoibuf1=%d  !\n",atoi(buf1));
+    for(i = atoi(buf1); i < 10; i++)
+    {
+        
+        //buf1[0] = 'q';
+        //nread = read(0,buf,BUFSIZE);
+        nread = BUFSIZE;
+        printf("i=%d\n", i);
+        printf("buf1i=%s\n", buf1);
+        if (write(fd, buf, nread) < 0) {
+        perror("writesd");
+        exit(1);
+        }
+    }
+    //printf("%c",buf1[0]);
+    printf("asd");
+    
+//}
 
   close(fd);
   exit(0);
